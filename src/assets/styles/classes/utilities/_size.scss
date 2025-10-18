@@ -21,6 +21,10 @@ $spacing-scale: (
   full:100%
 );
 
+.full-width {
+  width: 100%;
+}
+
 @each $key, $value in $spacing-scale {
   .w-#{$key} {
     width: $value !important;

@@ -1,0 +1,31 @@
+<div class="login-container">
+    <mat-card class="login-card">
+        <mat-card-header class="mb-4">
+            <mat-card-title class="login-title">Iniciar Sesión</mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+            <form (ngSubmit)="onSubmit($event)">
+                <mat-form-field appearance="outline" class="w-full mb-2">
+                    <mat-label>Correo electrónico</mat-label>
+                    <input matInput type="email" [formControl]="emailControl" autocomplete="email" />
+                    @if (emailControl.hasError('required') && emailControl.touched) {
+                        <mat-error>El correo es requerido</mat-error>
+                    }
+                    @if (emailControl.hasError('email') && emailControl.touched) {
+                        <mat-error>Ingresa un correo válido</mat-error>
+                    }
+                </mat-form-field>
+
+                <button mat-raised-button color="primary" type="submit" class="w-full"
+                    [disabled]="isLoading">
+                    @if (isLoading) {
+                        <mat-spinner diameter="20"></mat-spinner>
+                    } @else {
+                        Ingresar
+                    }
+                </button>
+            </form>
+        </mat-card-content>
+    </mat-card>
+</div>
