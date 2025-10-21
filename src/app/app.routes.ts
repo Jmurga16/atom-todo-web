@@ -8,15 +8,14 @@ export const routes: Routes = [
     },
     {
         path: 'auth',
-        //canActivate: [AuthenticatedGuard],
         loadChildren: () =>
             import('./auth/auth.routes').then(m => m.routes)
     },
-    /* {
+    {
         path: 'main',
         loadChildren: () =>
             import('./modules/main.routes').then(m => m.routes)
-    }, */
+    },
     {
         path: '**',
         redirectTo: 'auth/login'
