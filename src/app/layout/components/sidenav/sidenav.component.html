@@ -1,0 +1,9 @@
+<aside role="complementary" aria-label="Menú de navegación lateral">
+  <nav aria-label="Menú principal de la aplicación">
+    <mat-nav-list class="menu-list" role="list">
+      @for (item of menuItems; track item.id) {
+        <app-sidenav-item [item]="item"></app-sidenav-item>
+      }
+    </mat-nav-list>
+  </nav>
+</aside>

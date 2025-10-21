@@ -1,4 +1,10 @@
-@import "assets/styles/theme";
+// Theme
+@use "assets/styles/theme";
+
+// Classes (utilities, typography, colors, etc.)
+@use "assets/styles/classes";
+
+
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Inter, "Helvetica Neue", sans-serif; }
