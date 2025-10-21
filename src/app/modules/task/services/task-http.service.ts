@@ -9,11 +9,10 @@ import { Task, CreateTaskDto, UpdateTaskDto } from '../models';
 })
 export class TaskHttpService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/tasks`;
+  private readonly apiUrl = `${environment.apiUrl}/api/tasks`;
 
-  getAll(userId?: string): Observable<Task[]> {
-    const params = userId ? new HttpParams().set('userId', userId) : undefined;
-    return this.http.get<Task[]>(this.apiUrl, { params });
+  getAll(userId?: string): Observable<Task[]> {    
+    return this.http.get<Task[]>(`${this.apiUrl}/user/${userId || 'zOfy8sqlLUIggNZCJ3lJ'}`);
   }
 
   getById(id: string): Observable<Task> {

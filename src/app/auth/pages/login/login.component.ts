@@ -63,12 +63,15 @@ export class LoginComponent {
             .pipe(finalize(() => { this.isLoading = false; }))
             .subscribe({
                 next: (response) => {
-                    if (response.exists) {
+                    if (response.userExists) {
                         this.goToTask();
                     }
                     else {
                         this.openModalToCreateUser(email!);
                     }
+                },
+                error: (err) => {
+                    this.openModalToCreateUser(email!);
                 }
             });
 
@@ -105,6 +108,6 @@ export class LoginComponent {
     }
 
     goToTask() {
-        this.router.navigate(["/task"], { queryParams: { email: this.emailControl.value } });
+        this.router.navigate(["main/task"], { queryParams: { email: this.emailControl.value } });
     }
 }

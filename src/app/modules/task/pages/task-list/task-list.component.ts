@@ -49,7 +49,9 @@ export class TaskListComponent implements OnInit {
     this.taskService.getAll()
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
-        next: (tasks) => this.tasks.set(tasks),
+        next: (response:any) => {
+          this.tasks.set(response.data);
+        },
         error: (error) => console.error('Error loading tasks:', error)
       });
   }

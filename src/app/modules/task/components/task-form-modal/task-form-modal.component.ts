@@ -8,6 +8,7 @@ import { finalize } from 'rxjs';
 
 import { Task, CreateTaskDto, UpdateTaskDto } from '../../models';
 import { TaskHttpService } from '../../services';
+import { TaskForm } from '../../models/task-form.interface';
 
 const ANGULAR_MODULES = [ReactiveFormsModule];
 
@@ -22,10 +23,6 @@ interface TaskFormModalData {
   task?: Task;
 }
 
-interface TaskForm {
-  title: FormControl<string>;
-  description: FormControl<string>;
-}
 
 @Component({
   selector: 'app-task-form-modal',
@@ -50,6 +47,7 @@ export class TaskFormModalComponent implements OnInit {
   readonly isLoading = signal(false);
 
   readonly form = new FormGroup<TaskForm>({
+    userId: new FormControl('zOfy8sqlLUIggNZCJ3lJ', { nonNullable: true }),
     title: new FormControl('', {
       nonNullable: true,
       validators: [Validators.required, Validators.maxLength(100)]
