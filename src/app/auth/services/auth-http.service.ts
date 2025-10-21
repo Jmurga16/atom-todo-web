@@ -9,11 +9,11 @@ import { User, UserSearchResponse } from '../models';
 })
 export class AuthHttpService {
     private readonly http = inject(HttpClient);
-    private readonly apiUrl = `${environment.apiUrl}/users`;
+    private readonly apiUrl = `${environment.apiUrl}/api/users`;
 
     searchUserByEmail(email: string): Observable<UserSearchResponse> {
-        const params = new HttpParams().set('email', email);
-        return this.http.get<UserSearchResponse>(`${this.apiUrl}/search`, { params });
+        const encodedEmail = encodeURIComponent(email);
+        return this.http.get<UserSearchResponse>(`${this.apiUrl}/${encodedEmail}`);
     }
 
     createUser(user: string): Observable<User> {

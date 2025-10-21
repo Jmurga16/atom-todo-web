@@ -1,6 +1,6 @@
 import { User } from "./user.interface";
 
 export interface UserSearchResponse {
-    exists: boolean;
+    userExists: boolean;
     user?: User;
 }
