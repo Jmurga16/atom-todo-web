@@ -1,18 +1,16 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
-//import { SessionService } from '../services';
+import { TokenService } from '../services/token.service';
 
 export const AuthenticatedGuard: CanActivateFn = (route, state) => {
 
+    const tokenService = inject(TokenService);
     const router = inject(Router)
-    //const sessionService = inject(SessionService);
 
-    return true;
-
-    /* if (sessionService.isAuthenticated()) {
-        return router.navigate(['main/task']);
+    if (tokenService.isAuthenticated()) {
+        return router.navigate(['main/home'])
     }
     else {
         return true
-    } */
+    }
 };
