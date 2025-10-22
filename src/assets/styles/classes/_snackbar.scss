@@ -1,0 +1,36 @@
+// Snackbar customization
+.snackbar-success {
+    background-color: #4caf50 !important;
+    color: white !important;
+
+    .mat-mdc-snack-bar-action {
+        color: white !important;
+    }
+}
+
+.snackbar-error {
+    background-color: #f44336 !important;
+    color: white !important;
+
+    .mat-mdc-snack-bar-action {
+        color: white !important;
+    }
+}
+
+.snackbar-warning {
+    background-color: #ff9800 !important;
+    color: white !important;
+
+    .mat-mdc-snack-bar-action {
+        color: white !important;
+    }
+}
+
+.snackbar-info {
+    background-color: #2196f3 !important;
+    color: white !important;
+
+    .mat-mdc-snack-bar-action {
+        color: white !important;
+    }
+}
