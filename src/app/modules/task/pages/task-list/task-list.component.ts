@@ -1,12 +1,15 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, Signal, DestroyRef } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
-import { finalize } from 'rxjs';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { finalize, map } from 'rxjs';
 
 import { Task } from '../../models';
 import { TaskHttpService } from '../../services';
@@ -20,7 +23,8 @@ const MATERIAL_MODULES = [
   MatButtonModule,
   MatIconModule,
   MatCheckboxModule,
-  MatChipsModule
+  MatChipsModule,
+  MatCardModule
 ];
 
 const PIPES = [DatePipe];
@@ -40,10 +44,25 @@ export class TaskListComponent implements OnInit {
   private readonly taskService = inject(TaskHttpService);
   private readonly dialog = inject(MatDialog);
   private readonly notificationService = inject(NotificationService);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly tasks = signal<Task[]>([]);
   readonly isLoading = signal(false);
   readonly displayedColumns = ['checkbox', 'title', 'description', 'status', 'createdAt', 'actions'];
+  readonly isMobile: Signal<boolean>;
+
+  constructor() {
+    this.isMobile = toSignal(
+      this.breakpointObserver
+        .observe([Breakpoints.XSmall, Breakpoints.Small])
+        .pipe(
+          takeUntilDestroyed(this.destroyRef),
+          map(result => result.matches)
+        ),
+      { initialValue: false }
+    );
+  }
 
   ngOnInit(): void {
     this.loadTasks();

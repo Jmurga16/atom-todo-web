@@ -17,7 +17,56 @@
       <p>No tienes tareas. ¡Crea una nueva!</p>
     </div>
   } @else {
-    <table mat-table [dataSource]="tasks()" class="task-table">
+    <!-- Mobile View: Cards -->
+    @if (isMobile()) {
+      <div class="task-cards-container">
+        @for (task of tasks(); track task.id) {
+          <mat-card class="task-card" [class.completed]="task.completed">
+            <mat-card-header>
+              <div class="card-header-content">
+                <mat-checkbox
+                  [checked]="task.completed"
+                  (change)="toggleCompleted(task)"
+                  color="primary"
+                  class="task-checkbox">
+                </mat-checkbox>
+                <div class="task-title-section">
+                  <mat-card-title [class.completed-task]="task.completed">
+                    {{ task.title }}
+                  </mat-card-title>
+                  <mat-chip
+                    [color]="task.completed ? 'accent' : 'primary'"
+                    [class]="task.completed ? 'completed-chip' : 'pending-chip'">
+                    {{ task.completed ? 'Completada' : 'Pendiente' }}
+                  </mat-chip>
+                </div>
+              </div>
+            </mat-card-header>
+
+            <mat-card-content>
+              <p class="task-description" [class.completed-task]="task.completed">
+                {{ task.description }}
+              </p>
+              <div class="task-date">
+                <mat-icon>calendar_today</mat-icon>
+                <span>{{ task.createdAt | date:'short' }}</span>
+              </div>
+            </mat-card-content>
+
+            <mat-card-actions align="end">
+              <button mat-icon-button (click)="openEditDialog(task)" color="primary">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button (click)="confirmDelete(task)" color="warn">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    } @else {
+      <!-- Desktop View: Table -->
+      <table mat-table [dataSource]="tasks()" class="task-table">
 
       <ng-container matColumnDef="checkbox">
         <th mat-header-cell *matHeaderCellDef></th>
@@ -75,6 +124,7 @@
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
+      </table>
+    }
   }
 </div>
