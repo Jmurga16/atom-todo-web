@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { HeaderMenuComponent } from './header-menu/header-menu.component';
+import { AuthService } from '../../../auth/services/auth.service';
 
 
 const COMPONENTS = [
@@ -30,6 +31,7 @@ export class HeaderComponent {
 
   readonly isMobile = input<boolean>(false);
   private readonly _router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   toggleMenu = output<void>();
   showLogo = signal<boolean>(true);
@@ -44,6 +46,6 @@ export class HeaderComponent {
   }
 
   logout() {
-    this._router.navigate(['/auth/login']);
+    this.authService.logout();
   }
 }

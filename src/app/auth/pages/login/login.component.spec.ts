@@ -2,24 +2,29 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { LoginComponent } from './login.component';
-import { AuthHttpService } from '../../services/auth-http.service';
+import { AuthService } from '../../services/auth.service';
+import { UserHttpService } from '../../services/user-http.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
-import { User } from '../../models/user.interface';
+import { ApiResponse } from '../../../core/models';
+import { AuthResponse } from '../../models';
+import { UserWithToken } from '../../../core/models/user.model';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
   let fixture: ComponentFixture<LoginComponent>;
   let compiled: HTMLElement;
   let mockRouter: jasmine.SpyObj<Router>;
-  let mockAuthHttpService: jasmine.SpyObj<AuthHttpService>;
+  let mockAuthService: jasmine.SpyObj<AuthService>;
+  let mockUserHttpService: jasmine.SpyObj<UserHttpService>;
   let mockDialog: jasmine.SpyObj<MatDialog>;
   let mockDialogRef: jasmine.SpyObj<MatDialogRef<ConfirmDialogComponent>>;
 
   beforeEach(async () => {
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
-    mockAuthHttpService = jasmine.createSpyObj('AuthHttpService', ['searchUserByEmail', 'createUser']);
+    mockAuthService = jasmine.createSpyObj('AuthService', ['login']);
+    mockUserHttpService = jasmine.createSpyObj('UserHttpService', ['create']);
     mockDialog = jasmine.createSpyObj('MatDialog', ['open']);
     mockDialogRef = jasmine.createSpyObj('MatDialogRef', ['afterClosed', 'close']);
 
@@ -30,7 +35,8 @@ describe('LoginComponent', () => {
       ],
       providers: [
         { provide: Router, useValue: mockRouter },
-        { provide: AuthHttpService, useValue: mockAuthHttpService },
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: UserHttpService, useValue: mockUserHttpService },
         { provide: MatDialog, useValue: mockDialog }
       ]
     })
@@ -117,7 +123,7 @@ describe('LoginComponent', () => {
 
       expect(component.emailControl.touched).toBeTruthy();
       expect(component.isLoading).toBeFalsy();
-      expect(mockAuthHttpService.searchUserByEmail).not.toHaveBeenCalled();
+      expect(mockAuthService.login).not.toHaveBeenCalled();
     });
 
     it('should mark email as touched when submitting invalid form', () => {
@@ -127,29 +133,42 @@ describe('LoginComponent', () => {
       expect(component.emailControl.touched).toBeTruthy();
     });
 
-    it('should call searchUserByEmail when form is valid', () => {
+    it('should call authService.login when form is valid', () => {
       const testEmail = 'test@example.com';
-      mockAuthHttpService.searchUserByEmail.and.returnValue(of({ exists: true }));
+      const mockResponse: ApiResponse<AuthResponse> = {
+        success: true,
+        data: { exists: true, token: 'mock-token' }
+      };
+      mockAuthService.login.and.returnValue(of(mockResponse));
 
       component.emailControl.setValue(testEmail);
       component.onSubmit();
 
-      expect(mockAuthHttpService.searchUserByEmail).toHaveBeenCalledWith(testEmail);
+      expect(mockAuthService.login).toHaveBeenCalledWith({ email: testEmail });
     });
 
-    it('should navigate to /task when user exists', () => {
+    it('should navigate to main/task when user exists', () => {
       const testEmail = 'test@example.com';
-      mockAuthHttpService.searchUserByEmail.and.returnValue(of({ exists: true }));
+      const mockResponse: ApiResponse<AuthResponse> = {
+        success: true,
+        data: { exists: true, token: 'mock-token' }
+      };
+      mockAuthService.login.and.returnValue(of(mockResponse));
 
       component.emailControl.setValue(testEmail);
       component.onSubmit();
 
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/task'], { queryParams: { email: testEmail } });
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['main/task']);
     });
 
     it('should open confirmation dialog when user does not exist', () => {
       const testEmail = 'test@example.com';
-      mockAuthHttpService.searchUserByEmail.and.returnValue(of({ exists: false }));
+      const mockResponse: ApiResponse<AuthResponse> = {
+        success: true,
+        data: { exists: false },
+        message: 'User not found'
+      };
+      mockAuthService.login.and.returnValue(of(mockResponse));
       mockDialogRef.afterClosed.and.returnValue(of(false));
       mockDialog.open.and.returnValue(mockDialogRef);
 
@@ -166,38 +185,69 @@ describe('LoginComponent', () => {
       });
     });
 
-    it('should create user and navigate when dialog is confirmed', fakeAsync(() => {
+    it('should create user and login again when dialog is confirmed', fakeAsync(() => {
       const testEmail = 'test@example.com';
-      const mockUser: User = { id: 1, email: testEmail };
-      mockAuthHttpService.searchUserByEmail.and.returnValue(of({ exists: false }));
-      mockAuthHttpService.createUser.and.returnValue(of(mockUser));
+      const mockNotFoundResponse: ApiResponse<AuthResponse> = {
+        success: true,
+        data: { exists: false },
+        message: 'User not found'
+      };
+      const mockUser: ApiResponse<UserWithToken> = {
+        success: true,
+        message: 'User created successfully',
+        data: {
+          id: '1',
+          email: testEmail,
+          createdAt: new Date(),
+          token: 'new-token'
+        }
+      };
+      const mockLoginAfterCreateResponse: ApiResponse<AuthResponse> = {
+        success: true,
+        data: { exists: true, token: 'new-token' }
+      };
+
+      // First call: user doesn't exist
+      mockAuthService.login.and.returnValue(of(mockNotFoundResponse));
       mockDialogRef.afterClosed.and.returnValue(of(true));
       mockDialog.open.and.returnValue(mockDialogRef);
+      mockUserHttpService.create.and.returnValue(of(mockUser));
 
       component.emailControl.setValue(testEmail);
       component.onSubmit();
       tick();
 
-      expect(mockAuthHttpService.createUser).toHaveBeenCalledWith(testEmail);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/task'], { queryParams: { email: testEmail } });
+      // After user creation, login is called again
+      mockAuthService.login.and.returnValue(of(mockLoginAfterCreateResponse));
+      tick();
+
+      expect(mockUserHttpService.create).toHaveBeenCalledWith(testEmail);
     }));
 
     it('should not create user when dialog is cancelled', () => {
       const testEmail = 'test@example.com';
-      mockAuthHttpService.searchUserByEmail.and.returnValue(of({ exists: false }));
+      const mockResponse: ApiResponse<AuthResponse> = {
+        success: true,
+        data: { exists: false },
+        message: 'User not found'
+      };
+      mockAuthService.login.and.returnValue(of(mockResponse));
       mockDialogRef.afterClosed.and.returnValue(of(false));
       mockDialog.open.and.returnValue(mockDialogRef);
 
       component.emailControl.setValue(testEmail);
       component.onSubmit();
 
-      expect(mockAuthHttpService.createUser).not.toHaveBeenCalled();
-      expect(mockRouter.navigate).not.toHaveBeenCalled();
+      expect(mockUserHttpService.create).not.toHaveBeenCalled();
     });
 
-    it('should set isLoading to false after searchUserByEmail completes', () => {
+    it('should set isLoading to false after login completes', () => {
       const testEmail = 'test@example.com';
-      mockAuthHttpService.searchUserByEmail.and.returnValue(of({ exists: true }));
+      const mockResponse: ApiResponse<AuthResponse> = {
+        success: true,
+        data: { exists: true, token: 'mock-token' }
+      };
+      mockAuthService.login.and.returnValue(of(mockResponse));
 
       component.emailControl.setValue(testEmail);
       component.onSubmit();
@@ -238,26 +288,10 @@ describe('LoginComponent', () => {
   });
 
   describe('goToTask', () => {
-    it('should navigate to /task with email query param', () => {
-      const testEmail = 'test@example.com';
-      component.emailControl.setValue(testEmail);
-
+    it('should navigate to main/task', () => {
       component.goToTask();
 
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/task'], {
-        queryParams: { email: testEmail }
-      });
-    });
-
-    it('should navigate with current emailControl value', () => {
-      const testEmail = 'another@example.com';
-      component.emailControl.setValue(testEmail);
-
-      component.goToTask();
-
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/task'], {
-        queryParams: { email: testEmail }
-      });
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['main/task']);
     });
   });
 });

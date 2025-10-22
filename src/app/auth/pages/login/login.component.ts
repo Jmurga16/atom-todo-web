@@ -8,9 +8,11 @@ import { MatInputModule } from "@angular/material/input";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatDialog } from "@angular/material/dialog";
 import { finalize } from "rxjs";
-import { AuthHttpService } from "../../services/auth-http.service";
+import { UserHttpService } from "../../services/user-http.service";
 import { ConfirmDialogComponent } from "../../../shared/components/confirm-dialog/confirm-dialog.component";
 import { ConfirmDialogData } from "../../../shared/components/confirm-dialog/models/confirm-dialog-data.interface";
+import { AuthService } from "../../services/auth.service";
+import { LoginUserDto } from "../../models/login-user-dto.class";
 
 const ANGULAR_MODULES = [
     ReactiveFormsModule,
@@ -38,7 +40,8 @@ const MATERIAL_MODULES = [
 export class LoginComponent {
 
     private router = inject(Router);
-    private authHttpService = inject(AuthHttpService);
+    private userHttpService = inject(UserHttpService);
+    private authService = inject(AuthService);
     private dialog = inject(MatDialog);
 
     emailControl = new FormControl<string>("", [
@@ -59,19 +62,18 @@ export class LoginComponent {
         this.isLoading = true;
         const email = this.emailControl.value;
 
-        this.authHttpService.searchUserByEmail(email!)
+        const loginUserDto: LoginUserDto = { email: email! };
+
+        this.authService.login(loginUserDto)
             .pipe(finalize(() => { this.isLoading = false; }))
             .subscribe({
                 next: (response) => {
-                    if (response.userExists) {
+                    if (response.data?.exists) {
                         this.goToTask();
                     }
                     else {
                         this.openModalToCreateUser(email!);
                     }
-                },
-                error: (err) => {
-                    this.openModalToCreateUser(email!);
                 }
             });
 
@@ -98,16 +100,16 @@ export class LoginComponent {
 
     private createUserAndNavigate(email: string): void {
         this.isLoading = true;
-        this.authHttpService.createUser(email)
+        this.userHttpService.create(email)
             .pipe(finalize(() => { this.isLoading = false; }))
             .subscribe({
                 next: () => {
-                    this.goToTask();
+                    this.onSubmit();
                 }
             });
     }
 
     goToTask() {
-        this.router.navigate(["main/task"], { queryParams: { email: this.emailControl.value } });
+        this.router.navigate(["main/task"]);
     }
 }
