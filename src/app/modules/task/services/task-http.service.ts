@@ -2,7 +2,8 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { Task, CreateTaskDto, UpdateTaskDto } from '../models';
+import { Task, CreateTaskDTO, UpdateTaskDTO } from '../models';
+import { ApiResponse } from '../../../core/models';
 
 @Injectable({
   providedIn: 'root'
@@ -11,27 +12,51 @@ export class TaskHttpService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/api/tasks`;
 
-  getAll(userId?: string): Observable<Task[]> {    
-    return this.http.get<Task[]>(`${this.apiUrl}/user/${userId || 'zOfy8sqlLUIggNZCJ3lJ'}`);
+  getAll(): Observable<ApiResponse<Task[]>> {    
+    return this.http.get<ApiResponse<Task[]>>(this.apiUrl);
   }
 
-  getById(id: string): Observable<Task> {
-    return this.http.get<Task>(`${this.apiUrl}/${id}`);
+  getAllWithQuery(params?: {
+    page?: number;
+    limit?: number;
+    sortBy?: 'createdAt' | 'updatedAt' | 'title';
+    sortOrder?: 'asc' | 'desc';
+    completed?: boolean;
+    title?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Observable<ApiResponse<{ tasks: Task[]; total: number; page: number; limit: number; totalPages: number }>> {
+    let httpParams = new HttpParams();
+    
+    if (params) {
+      Object.keys(params).forEach(key => {
+        const value = params[key as keyof typeof params];
+        if (value !== undefined && value !== null) {
+          httpParams = httpParams.set(key, value.toString());
+        }
+      });
+    }
+    
+    return this.http.get<ApiResponse<{ tasks: Task[]; total: number; page: number; limit: number; totalPages: number }>>(`${this.apiUrl}/query`, { params: httpParams });
   }
 
-  create(task: CreateTaskDto): Observable<Task> {
-    return this.http.post<Task>(this.apiUrl, task);
+  getById(id: string): Observable<ApiResponse<Task>> {
+    return this.http.get<ApiResponse<Task>>(`${this.apiUrl}/${id}`);
   }
 
-  update(id: string, task: UpdateTaskDto): Observable<Task> {
-    return this.http.put<Task>(`${this.apiUrl}/${id}`, task);
+  create(task: CreateTaskDTO): Observable<ApiResponse<Task>> {
+    return this.http.post<ApiResponse<Task>>(this.apiUrl, task);
   }
 
-  delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  update(id: string, task: UpdateTaskDTO): Observable<ApiResponse<Task>> {
+    return this.http.put<ApiResponse<Task>>(`${this.apiUrl}/${id}`, task);
   }
 
-  toggleCompleted(id: string, completed: boolean): Observable<Task> {
-    return this.update(id, { completed });
+  delete(id: string): Observable<ApiResponse> {
+    return this.http.delete<ApiResponse>(`${this.apiUrl}/${id}`);
+  }
+
+  toggleCompleted(id: string): Observable<ApiResponse<Task>> {
+    return this.http.patch<ApiResponse<Task>>(`${this.apiUrl}/${id}/toggle`, {});
   }
 }
