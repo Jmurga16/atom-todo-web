@@ -4,6 +4,13 @@
       @for (item of menuItems; track item.id) {
         <app-sidenav-item [item]="item"></app-sidenav-item>
       }
+
+      <mat-divider class="logout-divider"></mat-divider>
+
+      <mat-list-item class="menu-list logout-item mobile-only" (click)="logout()">
+        <mat-icon matListItemIcon>logout</mat-icon>
+        <span matListItemTitle>Cerrar Sesión</span>
+      </mat-list-item>
     </mat-nav-list>
   </nav>
 </aside>

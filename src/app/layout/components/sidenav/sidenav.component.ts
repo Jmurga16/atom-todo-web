@@ -1,14 +1,20 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ISideMenuItem } from '../../models/side-menu-item.interface';
 import { SidenavItemComponent } from './sidenav-item/sidenav-item.component';
-import { MatNavList } from '@angular/material/list';
+import { MatNavList, MatListItem } from '@angular/material/list';
+import { MatIcon } from '@angular/material/icon';
+import { MatDivider } from '@angular/material/divider';
+import { AuthService } from '../../../auth/services/auth.service';
 
 const COMPONENTS = [
   SidenavItemComponent
 ]
 
 const MATERIAL_MODULES = [
-  MatNavList
+  MatNavList,
+  MatListItem,
+  MatIcon,
+  MatDivider
 ];
 
 @Component({
@@ -22,6 +28,8 @@ const MATERIAL_MODULES = [
   styleUrl: './sidenav.component.scss'
 })
 export class SidenavComponent {
+
+  private readonly authService = inject(AuthService);
 
   menuItems: ISideMenuItem[] = [
     {
@@ -37,4 +45,8 @@ export class SidenavComponent {
       url: '/main/task'
     }
   ]
+
+  logout(): void {
+    this.authService.logout();
+  }
 }
