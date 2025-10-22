@@ -6,7 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { finalize } from 'rxjs';
 
-import { Task, CreateTaskDto, UpdateTaskDto } from '../../models';
+import { Task, CreateTaskDTO, UpdateTaskDTO } from '../../models';
 import { TaskHttpService } from '../../services';
 import { TaskForm } from '../../models/task-form.interface';
 
@@ -84,7 +84,7 @@ export class TaskFormModalComponent implements OnInit {
     }
   }
 
-  private createTask(taskData: CreateTaskDto): void {
+  private createTask(taskData: CreateTaskDTO): void {
     this.taskService.create(taskData)
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
@@ -93,7 +93,7 @@ export class TaskFormModalComponent implements OnInit {
       });
   }
 
-  private updateTask(id: string, taskData: UpdateTaskDto): void {
+  private updateTask(id: string, taskData: UpdateTaskDTO): void {
     this.taskService.update(id, taskData)
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({

@@ -8,8 +8,7 @@ import { AuthService } from '../../services/auth.service';
 import { UserHttpService } from '../../services/user-http.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { ApiResponse } from '../../../core/models';
-import { AuthResponse } from '../../models';
-import { UserWithToken } from '../../../core/models/user.model';
+import { AuthResponse, User } from '../../models';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -192,15 +191,10 @@ describe('LoginComponent', () => {
         data: { exists: false },
         message: 'User not found'
       };
-      const mockUser: ApiResponse<UserWithToken> = {
-        success: true,
-        message: 'User created successfully',
-        data: {
-          id: '1',
-          email: testEmail,
-          createdAt: new Date(),
-          token: 'new-token'
-        }
+      const mockUser: User = {
+        id: 1,
+        email: testEmail,
+        createdAt: new Date()
       };
       const mockLoginAfterCreateResponse: ApiResponse<AuthResponse> = {
         success: true,

@@ -1,19 +1,20 @@
 export interface Task {
     id: string;
+    userId: string;
     title: string;
     description: string;
     completed: boolean;
+    active: boolean;
     createdAt: Date;
-    userId: string;
+    updatedAt: Date;
 }
 
-export interface CreateTaskDto {
-    userId: string;
+export interface CreateTaskDTO {
     title: string;
-    description: string;
+    description?: string;
 }
 
-export interface UpdateTaskDto {
+export interface UpdateTaskDTO {
     title?: string;
     description?: string;
     completed?: boolean;
